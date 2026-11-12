@@ -1,4 +1,4 @@
-# 3-DoF Planar Arm — ROS 2 Control + Real-Time Telemetry GUI
+# 3-DoF Planar Arm: ROS 2 Control + Real-Time Telemetry GUI
 
 Kineshia Robotics take-home (Robotics Software Engineer, ROS 2 & GUI Systems).
 
