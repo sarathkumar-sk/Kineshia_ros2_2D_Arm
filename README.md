@@ -99,28 +99,6 @@ ros2 lifecycle set /controller_node deactivate     # stops the control loop; com
 
 ---
 
-## Architecture
-
-```
-                         ┌──────────────────────── controller_node (LifecycleNode) ─────────────────────────┐
- /move_to_target (srv) ─►│ MotionPlanner ── IK (provided PlanarArm, worker process) + validation            │
- /target_pose   (topic)─►│   │             └ quintic JointTrajectory, every sample checked (limits, y ≥ 0)  │
- /pick_place  (action) ─►│ PickPlaceSequencer ─ move → grasp → move → release [→ home], feedback, cancel    │
- /home /stop /gripper  ─►│   │                                                                              │
- /move_joints   (srv)  ─►│   ▼   control loop 200 Hz:  ref = traj(t) ─► ControlMode ─► ArmBackend.write()   │
-                         │       (own callback group)  meas = ArmBackend.read() ◄────────────┘              │
-                         │       ControlMode: Position | Velocity (FF + PI) | Current (model-scaled PID)    │
-                         │       ArmBackend:  SimBackend | GazeboBackend | (DynamixelBackend)               │
-                         │   publish 50 Hz ─► /joint_states, /joint_reference (same stamp)                  │
-                         │   status  10 Hz ─► /controller_status (state, mode, projection, error, jitter)   │
-                         └──────────────────────────────────────────────────────────────────────────────────┘
-                                         │ topics / srv / action / parameters
-                         ┌───────────────▼────────────── gui_node ─────────────────────────────────────────┐
-                         │ ROS thread: SingleThreadedExecutor.spin()  ── callbacks → ring buffer / Qt signal│
-                         │ Qt thread:  QApplication.exec_()  ── 30 Hz render QTimer, widgets, buttons       │
-                         │             buttons ──► executor.create_task(...) (all rclpy calls on ROS thread) │
-                         └──────────────────────────────────────────────────────────────────────────────────┘
-```
 
 
 ### Interfaces
