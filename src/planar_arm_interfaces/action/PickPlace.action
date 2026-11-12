@@ -1,0 +1,19 @@
+# Full pick-and-place: move -> pick (close gripper) -> move -> place (open gripper).
+geometry_msgs/Point pick
+geometry_msgs/Point place
+# Return to the home pose at the end.
+bool return_home
+---
+bool success
+string message
+# Wall-clock time the whole sequence took (s).
+float64 elapsed
+---
+# Phase name, e.g. "move_to_pick", "grasp", "move_to_place", "release", "return_home"
+string phase
+uint8 step
+uint8 total_steps
+# Progress of the current phase and of the whole sequence, both in [0, 1].
+float64 phase_progress
+float64 total_progress
+geometry_msgs/Point end_effector

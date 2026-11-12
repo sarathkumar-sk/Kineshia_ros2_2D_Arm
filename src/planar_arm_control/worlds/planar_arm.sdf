@@ -1,0 +1,276 @@
+<?xml version="1.0"?>
+<!--
+  3-DoF planar arm for gz sim. The arm's plane (x, y-up) is Gazebo's x-z plane.
+  Each joint is driven by a JointPositionController (torque-level PID, gains
+  tuned per joint for its inertia and gravity load) listening on
+  /planar_arm/<joint>/cmd_pos (gz.msgs.Double), bridged from ROS 2 std_msgs/Float64.
+  Joint states are published by JointStatePublisher and bridged to /gz/joint_states.
+  Generated to match LINK_LENGTHS = [3.0, 2.0, 1.5] and the joint limits of planar_arm.py.
+-->
+<sdf version="1.9">
+  <world name="arm_world">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+
+    <gui fullscreen="0">
+      <!-- Camera faces the arm's plane (gz x-z) head-on. -->
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.5 0.5 0.5</ambient_light>
+        <background_color>0.85 0.88 0.92</background_color>
+        <camera_pose>0 -11 3.2 0 0.03 1.5708</camera_pose>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="WorldControl" name="World control">
+        <gz-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="width">121</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </gz-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>false</start_paused>
+      </plugin>
+      <plugin filename="WorldStats" name="World stats">
+        <gz-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </gz-gui>
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+      </plugin>
+    </gui>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 -10 10 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>0.3 0.5 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>40 40</size></plane></geometry>
+          <material><ambient>0.8 0.8 0.8 1</ambient><diffuse>0.8 0.8 0.8 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="pick_marker">
+      <static>true</static>
+      <pose>4.0 0.4 2.0 0 0 0</pose>
+      <link name="link">
+        <visual name="v">
+          <geometry><box><size>0.3 0.05 0.3</size></box></geometry>
+          <material><ambient>0.16 0.5 0.73 1</ambient><diffuse>0.16 0.5 0.73 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="place_marker">
+      <static>true</static>
+      <pose>-3.0 0.4 3.0 0 0 0</pose>
+      <link name="link">
+        <visual name="v">
+          <geometry><box><size>0.3 0.05 0.3</size></box></geometry>
+          <material><ambient>0.56 0.27 0.68 1</ambient><diffuse>0.56 0.27 0.68 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="planar_arm">
+      <pose>0 0 0 0 0 0</pose>
+      <link name="base_link">
+        <inertial><mass>10</mass></inertial>
+        <visual name="base">
+          <pose>0 0 -0.1 0 0 0</pose>
+          <geometry><box><size>0.6 0.6 0.2</size></box></geometry>
+          <material><ambient>0.3 0.3 0.3 1</ambient><diffuse>0.3 0.3 0.3 1</diffuse></material>
+        </visual>
+      </link>
+      <joint name="fixed_to_world" type="fixed">
+        <parent>world</parent>
+        <child>base_link</child>
+      </joint>
+
+    <link name="link1">
+      <pose>0.0 0 0.0 0 0 0</pose>
+      <inertial>
+        <pose>1.5 0 0 0 0 0</pose>
+        <mass>1.0</mass>
+        <inertia><ixx>0.00167</ixx><iyy>0.75000</iyy><izz>0.75000</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <visual name="visual">
+        <pose>1.5 0 0 0 0 0</pose>
+        <geometry><box><size>3.0 0.12 0.12</size></box></geometry>
+        <material><ambient>0.17 0.24 0.31 1</ambient><diffuse>0.17 0.24 0.31 1</diffuse></material>
+      </visual>
+      <visual name="joint_marker">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.12</radius><length>0.2</length></cylinder></geometry>
+        <material><ambient>0.95 0.6 0.07 1</ambient><diffuse>0.95 0.6 0.07 1</diffuse></material>
+      </visual>
+    </link>
+    <link name="link2">
+      <pose>3.0 0 0.0 0 0 0</pose>
+      <inertial>
+        <pose>1.0 0 0 0 0 0</pose>
+        <mass>0.6</mass>
+        <inertia><ixx>0.00100</ixx><iyy>0.20000</iyy><izz>0.20000</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <visual name="visual">
+        <pose>1.0 0 0 0 0 0</pose>
+        <geometry><box><size>2.0 0.12 0.12</size></box></geometry>
+        <material><ambient>0.20 0.40 0.70 1</ambient><diffuse>0.20 0.40 0.70 1</diffuse></material>
+      </visual>
+      <visual name="joint_marker">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.12</radius><length>0.2</length></cylinder></geometry>
+        <material><ambient>0.95 0.6 0.07 1</ambient><diffuse>0.95 0.6 0.07 1</diffuse></material>
+      </visual>
+    </link>
+    <link name="link3">
+      <pose>5.0 0 0.0 0 0 0</pose>
+      <inertial>
+        <pose>0.75 0 0 0 0 0</pose>
+        <mass>0.3</mass>
+        <inertia><ixx>0.00050</ixx><iyy>0.05625</iyy><izz>0.05625</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <visual name="visual">
+        <pose>0.75 0 0 0 0 0</pose>
+        <geometry><box><size>1.5 0.12 0.12</size></box></geometry>
+        <material><ambient>0.80 0.35 0.10 1</ambient><diffuse>0.80 0.35 0.10 1</diffuse></material>
+      </visual>
+      <visual name="joint_marker">
+        <pose>0 0 0 1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.12</radius><length>0.2</length></cylinder></geometry>
+        <material><ambient>0.95 0.6 0.07 1</ambient><diffuse>0.95 0.6 0.07 1</diffuse></material>
+      </visual>
+    </link>
+
+    <!-- axis -y: positive angle rotates +x towards +z (the arm's +y) -->
+    <joint name="joint1" type="revolute">
+      <parent>base_link</parent>
+      <child>link1</child>
+      <axis>
+        <xyz>0 -1 0</xyz>
+        <limit><lower>0.000000</lower><upper>3.141593</upper><effort>500</effort><velocity>3</velocity></limit>
+        <dynamics><damping>0.5</damping></dynamics>
+      </axis>
+    </joint>
+    <!-- axis -y: positive angle rotates +x towards +z (the arm's +y) -->
+    <joint name="joint2" type="revolute">
+      <parent>link1</parent>
+      <child>link2</child>
+      <axis>
+        <xyz>0 -1 0</xyz>
+        <limit><lower>-2.094395</lower><upper>2.094395</upper><effort>500</effort><velocity>3</velocity></limit>
+        <dynamics><damping>0.5</damping></dynamics>
+      </axis>
+    </joint>
+    <!-- axis -y: positive angle rotates +x towards +z (the arm's +y) -->
+    <joint name="joint3" type="revolute">
+      <parent>link2</parent>
+      <child>link3</child>
+      <axis>
+        <xyz>0 -1 0</xyz>
+        <limit><lower>-2.094395</lower><upper>2.094395</upper><effort>500</effort><velocity>3</velocity></limit>
+        <dynamics><damping>0.5</damping></dynamics>
+      </axis>
+    </joint>
+
+    <plugin filename="gz-sim-joint-position-controller-system"
+            name="gz::sim::systems::JointPositionController">
+      <joint_name>joint1</joint_name>
+      <topic>/planar_arm/joint1/cmd_pos</topic>
+      <p_gain>3000</p_gain>
+      <i_gain>1500</i_gain>
+      <d_gain>300</d_gain>
+      <i_max>200</i_max>
+      <i_min>-200</i_min>
+      <cmd_max>600</cmd_max>
+      <cmd_min>-600</cmd_min>
+    </plugin>
+    <plugin filename="gz-sim-joint-position-controller-system"
+            name="gz::sim::systems::JointPositionController">
+      <joint_name>joint2</joint_name>
+      <topic>/planar_arm/joint2/cmd_pos</topic>
+      <p_gain>1500</p_gain>
+      <i_gain>800</i_gain>
+      <d_gain>100</d_gain>
+      <i_max>100</i_max>
+      <i_min>-100</i_min>
+      <cmd_max>300</cmd_max>
+      <cmd_min>-300</cmd_min>
+    </plugin>
+    <plugin filename="gz-sim-joint-position-controller-system"
+            name="gz::sim::systems::JointPositionController">
+      <joint_name>joint3</joint_name>
+      <topic>/planar_arm/joint3/cmd_pos</topic>
+      <p_gain>300</p_gain>
+      <i_gain>150</i_gain>
+      <d_gain>10</d_gain>
+      <i_max>30</i_max>
+      <i_min>-30</i_min>
+      <cmd_max>100</cmd_max>
+      <cmd_min>-100</cmd_min>
+    </plugin>
+      <plugin filename="gz-sim-joint-state-publisher-system"
+              name="gz::sim::systems::JointStatePublisher">
+        <joint_name>joint1</joint_name>
+        <joint_name>joint2</joint_name>
+        <joint_name>joint3</joint_name>
+      </plugin>
+    </model>
+  </world>
+</sdf>

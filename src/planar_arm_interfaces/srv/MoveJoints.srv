@@ -1,0 +1,11 @@
+# Move the arm to the given joint angles (joint-space command, no IK).
+# positions = [joint1, joint2, joint3] in radians.
+float64[] positions
+# Optional trajectory duration in seconds; <= 0 lets the planner choose it from
+# the joint velocity / acceleration limits.
+float64 duration
+---
+bool accepted
+# Trajectory duration (s) when accepted.
+float64 duration
+string message

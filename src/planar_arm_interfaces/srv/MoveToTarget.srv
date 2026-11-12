@@ -1,0 +1,14 @@
+# Move the end-effector to a Cartesian target in the arm plane (metres).
+geometry_msgs/Point target
+# Optional trajectory duration in seconds; <= 0 lets the planner choose it from
+# the joint velocity / acceleration limits.
+float64 duration
+---
+bool accepted
+# True if the target was outside the workspace and was projected to the boundary.
+bool projected
+geometry_msgs/Point reachable_target
+# Planned goal joint angles (rad) and trajectory duration (s).
+float64[] joint_goal
+float64 duration
+string message

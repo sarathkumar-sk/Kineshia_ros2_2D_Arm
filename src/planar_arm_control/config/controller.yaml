@@ -1,0 +1,37 @@
+# Default parameters for controller_node (override from the launch command line).
+controller_node:
+  ros__parameters:
+    backend: sim                 # sim | gazebo
+    control_mode: position       # position | velocity | current (switchable at runtime when idle)
+    control_rate_hz: 200.0       # control loop: read -> control law -> write
+    publish_rate_hz: 50.0        # /joint_states + /joint_reference
+    status_rate_hz: 10.0         # /controller_status
+    control_thread: ros_timer    # ros_timer | dedicated (see docs/PROFILING.md)
+    ik_solver: corrected         # corrected (q3 used) | library (provided IK as is: q3 = 0)
+    ik_in_subprocess: true       # IK in a worker process -> no GIL contention with the loop
+    python_switch_interval_ms: 1.0
+    max_joint_velocity: 1.0      # rad/s  (trajectory time-scaling)
+    max_joint_acceleration: 2.0  # rad/s^2
+    min_trajectory_duration: 0.5
+    trajectory_duration: 0.0     # > 0 forces a fixed duration
+    settle_tolerance_deg: 0.5
+    settle_timeout: 2.0
+    initial_joint_positions_deg: [90.0, 0.0, 0.0]
+    home_on_activate: false
+    grip_time: 0.5
+    autostart: true              # configure + activate itself on startup
+    # PID gains
+    vel_kp: 8.0
+    vel_ki: 4.0
+    cur_kp: 400.0                # acceleration units (model-scaled)
+    cur_ki: 800.0
+    cur_kd: 40.0
+    # simulated actuator
+    encoder_ticks_per_rev: 4096
+    sim_gravity: true
+
+gui_node:
+  ros__parameters:
+    render_rate_hz: 30.0
+    history_seconds: 15.0
+    controller_node: controller_node
