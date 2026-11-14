@@ -58,10 +58,10 @@ The workspace has two packages:
 # Controller + GUI (simulated arm)
 ros2 launch planar_arm_control bringup.launch.py
 
-# The GUI plays the fixed test scenario by itself (good for recording)
+# The GUI plays the fixed test scenario by itself 
 ros2 launch planar_arm_control bringup.launch.py demo:=true
 
-# Choose a control mode at startup (it can also be switched from the GUI)
+# Choose a control mode at startup
 ros2 launch planar_arm_control bringup.launch.py control_mode:=current
 
 # Same controller, arm in Gazebo (gz sim) via ros_gz_bridge
